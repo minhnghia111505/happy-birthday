@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chúc Mừng Sinh Nhật 🎉</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Nền Particles -->
+    <canvas id="particles-canvas"></canvas>
+    
+    <div class="app-container">
+        <!-- 1. Màn hình mở đầu -->
+        <section id="welcome-screen" class="screen active">
+            <div class="glass-panel text-center">
+                <h1 class="title">Có một điều bất ngờ dành cho <br><span class="highlight">Em iuu</span></h1>
+                <div class="gift-icon-container">
+                    <img src="https://cdn-icons-png.flaticon.com/512/4213/4213958.png" alt="Hộp quà" class="gift-icon" id="welcome-gift">
+                </div>
+                <button class="btn btn-primary glow-effect" id="btn-open-gift">Mở quà ngay ✨</button>
+            </div>
+        </section>
+
+        <!-- 2. Hiệu ứng mở quà -->
+        <section id="gift-box-screen" class="screen hidden">
+            <div class="gift-box-container">
+                <img src="https://cdn-icons-png.flaticon.com/512/4213/4213958.png" alt="Hộp quà" class="gift-box" id="animated-gift">
+            </div>
+        </section>
+
+        <!-- 3. Phần chúc mừng sinh nhật -->
+        <section id="birthday-cake-screen" class="screen hidden">
+            <div class="glass-panel text-center">
+                <h1 class="title dancing-font gradient-text">Chúc mừng sinh nhật <br><span>Em iuu</span> 🎂</h1>
+                <div class="cake-container">
+                    <div class="cake">
+                        <div class="candle" id="candle">
+                            <div class="flame"></div>
+                            <div class="glow"></div>
+                        </div>
+                        <div class="frosting"></div>
+                        <div class="layer"></div>
+                    </div>
+                </div>
+                <p class="wish-text hidden" id="make-wish-text">Mong mọi điều ước của em sẽ trở thành hiện thực ✨</p>
+                <button class="btn btn-secondary" id="btn-blow-candle">Thổi nến đi em 🌬️</button>
+            </div>
+        </section>
+
+        <!-- 4. Phần lời chúc bí mật (3D Envelope) -->
+        <section id="secret-message-screen" class="screen hidden">
+            <div class="glass-panel text-center" style="width: 90%;">
+                <div class="envelope-wrapper" id="envelope-wrapper">
+                    <div class="envelope">
+                        <div class="flap"></div>
+                        <div class="letter">
+                            <p id="typed-message"></p>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary mt-20" id="btn-read-message">Mở thư tình 💌</button>
+                <button class="btn btn-secondary hidden mt-20" id="btn-next-gallery">Tiếp tục nào 👉</button>
+            </div>
+        </section>
+
+        <!-- 5. Phần ảnh kỷ niệm (Polaroid Stack) -->
+        <section id="memory-gallery-screen" class="screen hidden">
+            <div class="glass-panel text-center" style="width: 95%;">
+                <h2 class="title gradient-text">Khoảnh khắc của chúng ta 📸</h2>
+                <div class="polaroid-stack" id="polaroid-stack">
+                    <div class="polaroid">
+                        <img src="https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=400&q=80" alt="Kỷ niệm 4">
+                        <div class="caption">Kỷ niệm đáng nhớ</div>
+                    </div>
+                    <div class="polaroid">
+                        <img src="https://images.unsplash.com/photo-1558636508-e0db3814bd1d?auto=format&fit=crop&w=400&q=80" alt="Kỷ niệm 3">
+                        <div class="caption">Nụ cười ấy</div>
+                    </div>
+                    <div class="polaroid">
+                        <img src="https://images.unsplash.com/photo-1464349153735-7db50ed83c84?auto=format&fit=crop&w=400&q=80" alt="Kỷ niệm 2">
+                        <div class="caption">Một ngày vui vẻ</div>
+                    </div>
+                    <div class="polaroid active">
+                        <img src="https://images.unsplash.com/photo-1530103862676-de8892b0e928?auto=format&fit=crop&w=400&q=80" alt="Kỷ niệm 1">
+                        <div class="caption">Ngày mình bên nhau</div>
+                    </div>
+                </div>
+                <p class="swipe-hint">Bấm vào ảnh để lật xem ảnh dưới</p>
+                <button class="btn btn-primary mt-20" id="btn-next-wish">Phần cuối nhé</button>
+            </div>
+        </section>
+
+        <!-- 6. Phần điều ước cuối -->
+        <section id="final-wish-screen" class="screen hidden">
+            <div class="glass-panel text-center">
+                <p class="final-wish-text">"Tuổi mới, mong em luôn hạnh phúc, bình an và mãi là công chúa trong lòng anh."</p>
+                <button class="btn btn-primary glow-effect" id="btn-claim-gift">Nhận quà đặc biệt 🎁</button>
+            </div>
+            
+            <div class="popup-overlay hidden" id="gift-popup">
+                <div class="glass-popup-content">
+                    <h3 class="gradient-text">Voucher Tình Yêu 🎟️</h3>
+                    <p>Một chuyến đi chơi xa chỉ 2 đứa mình và vô vàn chiếc ôm ấm áp! 💖</p>
+                    <button class="btn btn-secondary" id="btn-close-popup">Chấp nhận ngay</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Phần kết thúc -->
+        <section id="end-screen" class="screen hidden">
+            <div class="glass-panel text-center">
+                <div class="heart-icon-3d">💖</div>
+                <p class="final-text">Cảm ơn vì đã xuất hiện trên đời này.</p>
+                <p class="final-text">Yêu <span class="highlight">Em iuu</span> vô cùng!</p>
+                <button class="btn btn-outline mt-20" id="btn-replay">Xem lại từ đầu</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Music Control -->
+    <button id="music-control" class="music-btn glass-btn">
+        <span id="music-icon">🎵</span>
+    </button>
+    <div id="youtube-audio"></div>
+
+    <!-- YouTube API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <!-- Confetti Library CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
