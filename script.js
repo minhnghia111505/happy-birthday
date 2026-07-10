@@ -29,30 +29,12 @@ document.addEventListener('DOMContentLoaded', () => {
         envelopeWrapper: document.getElementById('envelope-wrapper'),
         typedMessage: document.getElementById('typed-message'),
         giftPopup: document.getElementById('gift-popup'),
+        bgMusic: document.getElementById('bg-music'),
         musicControl: document.getElementById('music-control'),
         musicIcon: document.getElementById('music-icon')
     };
 
     let isMusicPlaying = false;
-    let ytPlayer;
-
-    // Khởi tạo YouTube Player
-    window.onYouTubeIframeAPIReady = function() {
-        ytPlayer = new YT.Player('youtube-audio', {
-            height: '0',
-            width: '0',
-            // ID bài Hơn Cả Yêu - Đức Phúc (Nhạc Việt tình cảm trẻ trung)
-            videoId: '9vA_w5lXqZ4', 
-            playerVars: {
-                'autoplay': 0,
-                'controls': 0,
-                'rel': 0,
-                'showinfo': 0,
-                'loop': 1,
-                'playlist': '9vA_w5lXqZ4'
-            }
-        });
-    };
 
     // === LỜI CHÚC CỦA BẠN ===
     const secretText = "Chúc em yêu sinh nhật thật vui vẻ và hạnh phúc nhé! Cảm ơn em vì đã đến và mang lại cho anh thật nhiều niềm vui. Chúc cho nụ cười trên môi em luôn rạng rỡ, và chúng ta sẽ cùng nhau tạo thêm thật nhiều kỷ niệm đẹp nữa nhé. Anh yêu em nhiều! Happy Birthday công chúa của anh! 🎂💖";
@@ -61,45 +43,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('particles-canvas');
     const ctx = canvas.getContext('2d');
     let particles = [];
-
+    
     function resizeCanvas() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     }
     window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+    resizeCanvas(); // Phải gọi lần đầu để setup kích thước
 
     class Particle {
         constructor() {
             this.x = Math.random() * canvas.width;
             this.y = Math.random() * canvas.height;
-            this.size = Math.random() * 3 + 1;
+            this.size = Math.random() * 10 + 6; // Kích thước trái tim
             this.speedX = Math.random() * 1 - 0.5;
             this.speedY = Math.random() * 1 - 0.5;
-            this.opacity = Math.random();
-            this.fadeSpeed = Math.random() * 0.02 + 0.005;
+            this.alpha = Math.random() * 0.6 + 0.1;
+            // Chọn ngẫu nhiên màu: Trắng, Hồng nhạt, Hồng đậm
+            const colors = ['255, 255, 255', '255, 192, 203', '255, 105, 180'];
+            this.color = colors[Math.floor(Math.random() * colors.length)];
         }
         update() {
             this.x += this.speedX;
             this.y += this.speedY;
+            
             if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
             if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
-            
-            // Fading effect
-            this.opacity += this.fadeSpeed;
-            if(this.opacity >= 1 || this.opacity <= 0) this.fadeSpeed *= -1;
         }
         draw() {
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 200, 200, ${Math.abs(this.opacity)})`;
-            ctx.fill();
+            ctx.font = `${this.size}px Arial`;
+            ctx.fillStyle = `rgba(${this.color}, ${this.alpha})`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('❤', this.x, this.y);
         }
     }
 
     function initParticles() {
         particles = [];
-        for (let i = 0; i < 60; i++) {
+        for (let i = 0; i < 80; i++) { // Tăng số lượng trái tim lên 80
             particles.push(new Particle());
         }
     }
@@ -116,7 +98,98 @@ document.addEventListener('DOMContentLoaded', () => {
     initParticles();
     animateParticles();
 
-    // ---- Helper Functions ----
+    // ---- Web Audio API Synthesizer cho Âm thanh (SFX) ----
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    function playSynthSFX(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const t = audioCtx.currentTime;
+        
+        if (type === 'pop') {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, t);
+            osc.frequency.exponentialRampToValueAtTime(800, t + 0.1);
+            gain.gain.setValueAtTime(0.5, t);
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.1);
+        } 
+        else if (type === 'whoosh') {
+            const bufferSize = audioCtx.sampleRate * 0.5;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(1000, t);
+            filter.frequency.exponentialRampToValueAtTime(100, t + 0.5);
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.3, t);
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+            noise.start(t);
+        }
+        else if (type === 'paper') {
+            const bufferSize = audioCtx.sampleRate * 0.1; 
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'highpass';
+            filter.frequency.value = 1000;
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.1, t);
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+            noise.start(t);
+        }
+        else if (type === 'camera') {
+            const playClick = (time) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, time);
+                osc.frequency.exponentialRampToValueAtTime(100, time + 0.05);
+                gain.gain.setValueAtTime(0.1, time);
+                gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(time);
+                osc.stop(time + 0.05);
+            };
+            playClick(t);
+            playClick(t + 0.1);
+        }
+        else if (type === 'tada') {
+            const freqs = [523.25, 659.25, 783.99, 1046.50];
+            freqs.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.1, t + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 1.5);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(t + (index * 0.05));
+                osc.stop(t + 1.5);
+            });
+        }
+    }
 
     function switchScreen(currentScreen, nextScreen) {
         currentScreen.classList.remove('active');
@@ -129,15 +202,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function toggleMusic(forcePlay = false) {
-        if (!ytPlayer || typeof ytPlayer.playVideo !== 'function') return;
-
         if (forcePlay || !isMusicPlaying) {
-            ytPlayer.playVideo();
-            isMusicPlaying = true;
-            ui.musicIcon.textContent = '🎵';
-            ui.musicControl.style.animation = 'pulse 2s infinite';
+            ui.bgMusic.play().then(() => {
+                isMusicPlaying = true;
+                ui.musicIcon.textContent = '🎵';
+                ui.musicControl.style.animation = 'pulse 2s infinite';
+            }).catch(err => {
+                console.log("Autoplay blocked:", err);
+                alert("Bạn chưa đưa file music.mp3 vào thư mục assets/ đó nha!");
+            });
         } else {
-            ytPlayer.pauseVideo();
+            ui.bgMusic.pause();
             isMusicPlaying = false;
             ui.musicIcon.textContent = '🔇';
             ui.musicControl.style.animation = 'none';
@@ -179,6 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 ui.animatedGift.classList.remove('shake-anim');
                 ui.animatedGift.classList.add('zoom-out-open');
+                playSynthSFX('pop');
                 shootConfetti();
                 
                 setTimeout(() => {
@@ -192,6 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
     buttons.blowCandle.addEventListener('click', () => {
         ui.flame.classList.add('off');
         ui.glow.classList.add('off');
+        playSynthSFX('whoosh');
         
         confetti({
             particleCount: 30, spread: 50, origin: { y: 0.4 },
@@ -207,7 +284,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Mở thư 3D
     buttons.readMessage.addEventListener('click', () => {
         buttons.readMessage.classList.add('hidden');
-        ui.envelopeWrapper.classList.add('open'); // Mở nắp thư & giấy kéo lên
+        ui.envelopeWrapper.classList.add('open'); 
+        playSynthSFX('paper');
         
         setTimeout(() => {
             typeWriter(secretText, 0, () => {
@@ -228,6 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (index !== currentPolaroid) return; // Chỉ cho phép click ảnh trên cùng
             
             polaroid.classList.add('leave');
+            playSynthSFX('camera');
             currentPolaroid--;
             
             if(currentPolaroid >= 0) {
@@ -249,6 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. Nhận quà & Mở Popup
     buttons.claimGift.addEventListener('click', () => {
         ui.giftPopup.classList.add('show');
+        playSynthSFX('tada');
         shootConfetti(['#ffdf00', '#ff8a8c', '#ffffff']);
     });
 
